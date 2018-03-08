@@ -4,11 +4,15 @@ package logfox
 
 import "time"
 
-type logger struct {
+type Logger struct {
 	path          string
 	app           string
 	backUpDay     int
 	splitDuration time.Duration
-	iWriter       *writer
-	fWriter       *writer
+	iWriter       *Writer
+	fWriter       *Writer
+}
+
+func NewLogger(path string, app string, backUpDay int, splitDuration time.Duration, fileSuffixTimeString string) (*Logger, error) {
+	return nil, nil
 }

@@ -12,10 +12,14 @@ const (
 	DEFAULT_FILEWRITER_MSG_SUFFIX_TIME_STRING  = "06-01-02 15:04:05.999"
 )
 
-var loggerObj *logger = nil
-var LogLevel string = "DEBUG"
+var loggerObj *Logger = nil
+var logLevel string
 
-func Init(path string, app string) error {
+func Init(path string, app string, level string) error {
+	if loggerObj != nil {
+		return nil
+	}
+	logLevel = level
 	return nil
 }
 

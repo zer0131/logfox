@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-type writer struct {
+type Writer struct {
 	path                 string
 	fileName             string
 	fileSuffixTimeString string
