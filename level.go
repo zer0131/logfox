@@ -17,22 +17,12 @@ const (
 	PanicLevel
 )
 
-//根据level值获取字符串
-func (level Level) StringLevel() string {
-	if str, ok := levelMapper[level]; ok {
+//实现String方法，输出时默认转换为字符串
+func (this Level) String() string {
+	if str, ok := levelMapper[this]; ok {
 		return str
 	}
 	panic(errors.New("Wrong Level Number"))
-}
-
-//校验level是否有效
-func (level Level) IsValidLevel() bool {
-	for _, val := range allLevels {
-		if val == level {
-			return true
-		}
-	}
-	return false
 }
 
 var levelMapper = map[Level]string{
@@ -53,12 +43,3 @@ var levelMapperRev = map[string]Level{
 	"PANIC":  PanicLevel,
 }
 
-//声明级别数组
-var allLevels = [...]Level{
-	DebugLevel,
-	InfoLevel,
-	NoticeLevel,
-	WarnLevel,
-	ErrorLevel,
-	PanicLevel,
-}
