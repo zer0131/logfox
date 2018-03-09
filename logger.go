@@ -11,51 +11,51 @@ import (
 )
 
 type Logger struct {
-	path          string
-	app           string
-	backUpDay     int
-	splitDuration time.Duration
-	iWriter       *Writer
-	fWriter       *Writer
+	path      string
+	app       string
+	expireDay int
+	iWriter   *Writer
+	fWriter   *Writer
 }
 
-func NewLogger(path string, app string, backUpDay int, splitDuration time.Duration, fileSuffixTimeString string) (*Logger, error) {
+func NewLogger(path string, app string, expireDay int, fileSuffixTimeString string) (*Logger, error) {
 	if err := os.MkdirAll(path, os.FileMode(0755)); err != nil {
 		return nil, err
 	}
-	iWriter, erri := NewWriter(path, fmt.Sprintf("%s.log", app), fileSuffixTimeString, backUpDay, splitDuration)
-	if erri != nil {
-		return nil, erri
+	//正常输出
+	iWriter, iErr := NewWriter(path, fmt.Sprintf("%s.log", app), fileSuffixTimeString, expireDay)
+	if iErr != nil {
+		return nil, iErr
 	}
-	fWriter, errw := NewWriter(path, fmt.Sprintf("%s.log.wf", app), fileSuffixTimeString, backUpDay, splitDuration)
-	if errw != nil {
-		return nil, errw
+	//错误输出
+	fWriter, wErr := NewWriter(path, fmt.Sprintf("%s.log.wf", app), fileSuffixTimeString, expireDay)
+	if wErr != nil {
+		return nil, wErr
 	}
 	logger := &Logger{
-		path:          path,
-		app:           app,
-		backUpDay:     backUpDay,
-		splitDuration: splitDuration,
-		iWriter:       iWriter,
-		fWriter:       fWriter,
+		path:      path,
+		app:       app,
+		expireDay: expireDay,
+		iWriter:   iWriter,
+		fWriter:   fWriter,
 	}
 	return logger, nil
 }
 
 //正常输出
 func (this *Logger) Output(msg string, level Level) {
-	timeNow := time.Now().Format(DEFAULT_FILEWRITER_MSG_SUFFIX_TIME_STRING)
-	_, file, line, _ := runtime.Caller(2)//获取文件和行号
-	msgInput := fmt.Sprintf("%s %s %s:%d: %s\n", level.String(), timeNow, filepath.Base(file), line, msg)
-	this.iWriter.write(msgInput)
+	this.iWriter.write(this.msgInput(msg, level))
 }
 
 //错误输出
-func (this *Logger) OutputF(msg string, level Level) {
+func (this *Logger) OutputWf(msg string, level Level) {
+	this.fWriter.write(this.msgInput(msg, level))
+}
+
+func (this *Logger) msgInput(msg string, level Level) string {
 	timeNow := time.Now().Format(DEFAULT_FILEWRITER_MSG_SUFFIX_TIME_STRING)
 	_, file, line, _ := runtime.Caller(2)
-	msgInput := fmt.Sprintf("%s %s %s:%d: %s\n", level.String(), timeNow, filepath.Base(file), line, msg)
-	this.fWriter.write(msgInput)
+	return fmt.Sprintf("%s %s %s:%d: %s\n", level.String(), timeNow, filepath.Base(file), line, msg)
 }
 
 func (this *Logger) Close() {

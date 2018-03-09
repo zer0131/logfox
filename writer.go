@@ -15,19 +15,18 @@ type Writer struct {
 	path                 string
 	fileName             string
 	fileSuffixTimeString string
-	backUpDay            int
+	expireDay            int
 	file                 *os.File
 	msgs                 chan string
 	waitQueue            *sync.WaitGroup
 }
 
-func NewWriter(path string, fileName string, fileSuffixTimeString string,
-	backUpDay int, splitDuration time.Duration) (*Writer, error) {
+func NewWriter(path string, fileName string, fileSuffixTimeString string, expireDay int) (*Writer, error) {
 	writer := &Writer{
 		path:                 path,
 		fileName:             fileName,
 		fileSuffixTimeString: fileSuffixTimeString,
-		backUpDay:            backUpDay,
+		expireDay:            expireDay,
 		msgs:                 make(chan string, 10000),
 		waitQueue:            new(sync.WaitGroup),
 	}
@@ -110,6 +109,7 @@ func (this *Writer) rotate() {
 			}
 
 		case <-tick.C:
+			//日志切分
 			err := this.dumpFile()
 			if err != nil {
 				panic(err)
@@ -119,8 +119,8 @@ func (this *Writer) rotate() {
 			tDuration = this.getTDuration()
 			tick.Reset(tDuration)
 
+			//处理过期数据
 			go this.clean()
-
 		}
 	}
 }
@@ -144,7 +144,7 @@ func (this *Writer) clean() {
 			return nil
 		}
 		now := time.Now()
-		day, _ := time.ParseDuration(fmt.Sprintf("-%dh", 24*this.backUpDay))
+		day, _ := time.ParseDuration(fmt.Sprintf("-%dh", 24*this.expireDay))
 		timeLast := now.Add(day).Format(this.fileSuffixTimeString)
 		if timeLast > fileSuffix {
 			os.Remove(filePath)
