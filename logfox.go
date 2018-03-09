@@ -20,9 +20,51 @@ func Init(path string, app string, level string) error {
 		return nil
 	}
 	logLevel = level
+	var err error
+	if loggerObj, err = NewLogger(path, app, DEFAULT_FILEWRITER_MAX_BACKUP_DAY,
+		DEFAULT_FILEWRITER_SPLIT_DURATION, DEFAULT_FILEWRITER_FILE_SUFFIX_TIME_STRING); err != nil {
+		return err
+	}
 	return nil
 }
 
 func Debug(v ...interface{}) {
-	fmt.Println(v...)
+	if DebugLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(fmt.Sprint(v...), DebugLevel)
+	}
+}
+
+func Info(v ...interface{}) {
+	if InfoLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(fmt.Sprint(v...), InfoLevel)
+	}
+}
+
+func Notice(v ...interface{}) {
+	if NoticeLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(fmt.Sprint(v...), NoticeLevel)
+	}
+}
+
+func Warn(v ...interface{}) {
+	if WarnLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.OutputF(fmt.Sprint(v...), WarnLevel)
+	}
+}
+
+func Error(v ...interface{}) {
+	if ErrorLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.OutputF(fmt.Sprint(v...), ErrorLevel)
+	}
+}
+
+func Panic(v ...interface{}) {
+	if PanicLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.OutputF(fmt.Sprint(v...), PanicLevel)
+		panic(fmt.Sprint(v...))
+	}
+}
+
+func Close() {
+	loggerObj.Close()
 }
