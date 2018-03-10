@@ -153,11 +153,13 @@ func (this *Writer) clean() {
 	})
 }
 
+//ToDo: 延长100ms是否合适
 func (this *Writer) getTDuration() time.Duration {
+	//按照小时为单位四舍五入为整点
 	roundHour := time.Now().Round(time.Hour)
 	if roundHour.Before(time.Now()) {
 		roundHour = roundHour.Add(time.Hour)
 	}
-	tDuration := roundHour.Sub(time.Now())
-	return tDuration
+	//距离一下个整点的时间差(人为延长100ms)
+	return roundHour.Sub(time.Now()) + time.Millisecond * 100
 }
