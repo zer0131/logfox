@@ -16,10 +16,30 @@ go get github.com/zer0131/logfox
 
 ### 方法二
 
-基于glide，添加glide.yaml配置
+添加glide.yaml配置
 
 ```
 - package: github.com/zer0131/logfox
 ```
 
+```
+glide update
+```
+
+## 使用示例
+
+```
+package main
+
+import "github.com/zer0131/logfox"
+
+func init() {
+    logfox.Init("./log", "test", "DEBUG", 7)
+}
+
+func main() {
+    logfox.Info("test info")
+    logfox.Close()
+}
+```
 
