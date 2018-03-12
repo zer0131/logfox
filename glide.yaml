@@ -1,6 +1,6 @@
 package: logfox
 homepage: https://github.com/zer0131/logfox
-license: MIT
+license: Apache License 2.0
 owners:
 - name: Ryan Zhang
   email: zer031@vip.qq.com
