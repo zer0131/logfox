@@ -159,6 +159,5 @@ func (this *Writer) getTDuration() time.Duration {
 	if roundHour.Before(time.Now()) {
 		roundHour = roundHour.Add(time.Hour)
 	}
-	//距离一下个整点的时间差(人为延长100ms)
 	return roundHour.Sub(time.Now())
 }
