@@ -43,22 +43,22 @@ func NewLogger(path string, app string, expireDay int, fileSuffixTimeString stri
 }
 
 //正常输出
-func (this *Logger) Output(msg string, level Level) {
-	this.iWriter.write(this.msgInput(msg, level))
+func (lo *Logger) Output(msg string, level Level) {
+	lo.iWriter.write(lo.msgInput(msg, level))
 }
 
 //错误输出
-func (this *Logger) OutputWf(msg string, level Level) {
-	this.fWriter.write(this.msgInput(msg, level))
+func (lo *Logger) OutputWf(msg string, level Level) {
+	lo.fWriter.write(lo.msgInput(msg, level))
 }
 
-func (this *Logger) msgInput(msg string, level Level) string {
+func (lo *Logger) msgInput(msg string, level Level) string {
 	timeNow := time.Now().Format(DEFAULT_FILEWRITER_MSG_SUFFIX_TIME_STRING)
 	_, file, line, _ := runtime.Caller(2)
 	return fmt.Sprintf("%s %s %s:%d: %s\n", level.String(), timeNow, filepath.Base(file), line, msg)
 }
 
-func (this *Logger) Close() {
-	this.iWriter.Close()
-	this.fWriter.Close()
+func (lo *Logger) Close() {
+	lo.iWriter.Close()
+	lo.fWriter.Close()
 }

@@ -43,117 +43,117 @@ func NewWriter(path string, fileName string, fileSuffixTimeString string, expire
 	return writer, nil
 }
 
-func (this *Writer) Close() {
+func (w *Writer) Close() {
 	//等chan里的写完
-	this.waitQueue.Wait()
-	close(this.msgs)
+	w.waitQueue.Wait()
+	close(w.msgs)
 }
 
-func (this *Writer) newFile() (*os.File, error) {
-	filePath := filepath.Join(this.path, this.fileName)
+func (w *Writer) newFile() (*os.File, error) {
+	filePath := filepath.Join(w.path, w.fileName)
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		file.Close()
+		_ = file.Close()
 		return nil, err
 	}
 	return file, nil
 }
 
 //将当前log文件按时间存起来
-func (this *Writer) dumpFile() error {
-	this.file.Close()
+func (w *Writer) dumpFile() error {
+	_ = w.file.Close()
 
 	//减一小时
 	now := time.Now()
 	h, _ := time.ParseDuration("-1h")
 	preHour := now.Add(h)
 
-	timeSuffix := preHour.Format(this.fileSuffixTimeString)
-	preFilePath := filepath.Join(this.path, this.fileName+"."+timeSuffix)
-	curFilePath := filepath.Join(this.path, this.fileName)
+	timeSuffix := preHour.Format(w.fileSuffixTimeString)
+	preFilePath := filepath.Join(w.path, w.fileName+"."+timeSuffix)
+	curFilePath := filepath.Join(w.path, w.fileName)
 	if err := os.Rename(curFilePath, preFilePath); err != nil {
 		return err
 	}
 
-	newFile, err := this.newFile()
+	newFile, err := w.newFile()
 	if err != nil {
 		return err
 	}
-	this.file = newFile
+	w.file = newFile
 	return nil
 }
 
-func (this *Writer) write(msg string) {
-	this.waitQueue.Add(1)
-	this.msgs <- msg
+func (w *Writer) write(msg string) {
+	w.waitQueue.Add(1)
+	w.msgs <- msg
 }
 
-func (this *Writer) rotate() {
-	tDuration := this.getTDuration()
+func (w *Writer) rotate() {
+	tDuration := w.getTDuration()
 
 	//定时器
 	tick := time.NewTimer(tDuration)
 
 	for {
 		select {
-		case msg, ok := <-this.msgs:
+		case msg, ok := <-w.msgs:
 			if ok || msg != "" {
-				this.waitQueue.Done()
-				if err := this.fileAppend(msg); err != nil {
+				w.waitQueue.Done()
+				if err := w.fileAppend(msg); err != nil {
 					panic(err)
 				}
 			} else {
 				//chan已关闭并且里面消息已消费完
-				this.file.Close()
+				_ = w.file.Close()
 				return
 			}
 
 		case <-tick.C:
 			//日志切分
-			err := this.dumpFile()
+			err := w.dumpFile()
 			if err != nil {
 				panic(err)
 			}
 
 			//重新计时
-			tDuration = this.getTDuration()
+			tDuration = w.getTDuration()
 			tick.Reset(tDuration)
 
 			//处理过期数据
-			go this.clean()
+			go w.clean()
 		}
 	}
 }
 
-func (this *Writer) fileAppend(msg string) error {
-	_, err := this.file.WriteString(msg)
+func (w *Writer) fileAppend(msg string) error {
+	_, err := w.file.WriteString(msg)
 	return err
 }
 
-func (this *Writer) clean() {
-	filepath.Walk(this.path, func(filePath string, info os.FileInfo, err error) error {
-		if filePath == "." || filePath == ".." || filePath == this.path {
+func (w *Writer) clean() {
+	_ = filepath.Walk(w.path, func(filePath string, info os.FileInfo, err error) error {
+		if filePath == "." || filePath == ".." || filePath == w.path {
 			return nil
 		}
 		idx := strings.LastIndex(filePath, ".")
 		rs := []byte(filePath)
-		suffix := rs[idx+1: len(rs)]
+		suffix := rs[idx+1:len(rs)]
 		fileSuffix := string(suffix)
-		match := strings.LastIndex(filePath, this.fileName+"."+fileSuffix)
+		match := strings.LastIndex(filePath, w.fileName+"."+fileSuffix)
 		if match < 0 {
 			return nil
 		}
 		now := time.Now()
-		day, _ := time.ParseDuration(fmt.Sprintf("-%dh", 24*this.expireDay))
-		timeLast := now.Add(day).Format(this.fileSuffixTimeString)
+		day, _ := time.ParseDuration(fmt.Sprintf("-%dh", 24*w.expireDay))
+		timeLast := now.Add(day).Format(w.fileSuffixTimeString)
 		if timeLast > fileSuffix {
-			os.Remove(filePath)
+			_ = os.Remove(filePath)
 		}
 		return nil
 	})
 }
 
-func (this *Writer) getTDuration() time.Duration {
+func (w *Writer) getTDuration() time.Duration {
 	//按照小时为单位四舍五入为整点
 	roundHour := time.Now().Round(time.Hour)
 	if roundHour.Before(time.Now()) {

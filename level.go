@@ -18,8 +18,8 @@ const (
 )
 
 //实现String方法，输出时默认转换为字符串
-func (this Level) String() string {
-	if str, ok := levelMapper[this]; ok {
+func (l Level) String() string {
+	if str, ok := levelMapper[l]; ok {
 		return str
 	}
 	panic(errors.New("Wrong Level Number"))
