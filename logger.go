@@ -3,11 +3,11 @@
 package logfox
 
 import (
-	"time"
-	"os"
 	"fmt"
-	"runtime"
+	"os"
 	"path/filepath"
+	"runtime"
+	"time"
 )
 
 type Logger struct {
@@ -54,7 +54,7 @@ func (lo *Logger) OutputWf(msg string, level Level) {
 
 func (lo *Logger) msgInput(msg string, level Level) string {
 	timeNow := time.Now().Format(DEFAULT_FILEWRITER_MSG_SUFFIX_TIME_STRING)
-	_, file, line, _ := runtime.Caller(2)
+	_, file, line, _ := runtime.Caller(3)
 	return fmt.Sprintf("%s %s %s:%d: %s\n", level.String(), timeNow, filepath.Base(file), line, msg)
 }
 
