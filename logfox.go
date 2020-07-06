@@ -82,20 +82,14 @@ func LogIdFromContext(ctx context.Context) (string, bool) {
 }
 
 func DebugWithContext(ctx context.Context, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Debug(fmt.Sprintf("[%s]", logId) + " " + fmt.Sprint(v...))
-	} else {
-		Debug(v...)
+	if DebugLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(parseStr(ctx, v...), DebugLevel)
 	}
 }
 
 func DebugfWithContext(ctx context.Context, format string, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Debugf(fmt.Sprintf("[%s] %s", logId, format), v...)
-	} else {
-		Debugf(format, v...)
+	if DebugLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(parseStrf(ctx, format, v...), DebugLevel)
 	}
 }
 
@@ -112,20 +106,14 @@ func Debugf(format string, v ...interface{}) {
 }
 
 func InfoWithContext(ctx context.Context, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Info(fmt.Sprintf("[%s]", logId) + " " + fmt.Sprint(v...))
-	} else {
-		Info(v...)
+	if InfoLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(parseStr(ctx, v...), InfoLevel)
 	}
 }
 
 func InfofWithContext(ctx context.Context, format string, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Infof(fmt.Sprintf("[%s] %s", logId, format), v...)
-	} else {
-		Infof(format, v...)
+	if InfoLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(parseStrf(ctx, format, v...), InfoLevel)
 	}
 }
 
@@ -142,20 +130,14 @@ func Infof(format string, v ...interface{}) {
 }
 
 func NoticeWithContext(ctx context.Context, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Notice(fmt.Sprintf("[%s]", logId) + " " + fmt.Sprint(v...))
-	} else {
-		Notice(v...)
+	if NoticeLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(parseStr(ctx, v...), NoticeLevel)
 	}
 }
 
 func NoticefWithContext(ctx context.Context, format string, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Noticef(fmt.Sprintf("[%s] %s", logId, format), v...)
-	} else {
-		Noticef(format, v...)
+	if NoticeLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.Output(parseStrf(ctx, format, v...), NoticeLevel)
 	}
 }
 
@@ -172,20 +154,14 @@ func Noticef(format string, v ...interface{}) {
 }
 
 func WarnWithContext(ctx context.Context, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Warn(fmt.Sprintf("[%s]", logId) + " " + fmt.Sprint(v...))
-	} else {
-		Warn(v...)
+	if WarnLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.OutputWf(parseStr(ctx, v...), WarnLevel)
 	}
 }
 
 func WarnfWithContext(ctx context.Context, format string, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Warnf(fmt.Sprintf("[%s] %s", logId, format), v...)
-	} else {
-		Warnf(format, v...)
+	if WarnLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.OutputWf(parseStrf(ctx, format, v...), WarnLevel)
 	}
 }
 
@@ -202,20 +178,14 @@ func Warnf(format string, v ...interface{}) {
 }
 
 func ErrorWithContext(ctx context.Context, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Error(fmt.Sprintf("[%s]", logId) + " " + fmt.Sprint(v...))
-	} else {
-		Error(v...)
+	if ErrorLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.OutputWf(parseStr(ctx, v...), ErrorLevel)
 	}
 }
 
 func ErrorfWithContext(ctx context.Context, format string, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Errorf(fmt.Sprintf("[%s] %s", logId, format), v...)
-	} else {
-		Errorf(format, v...)
+	if ErrorLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		loggerObj.OutputWf(parseStrf(ctx, format, v...), ErrorLevel)
 	}
 }
 
@@ -232,20 +202,18 @@ func Errorf(format string, v ...interface{}) {
 }
 
 func PanicWithContext(ctx context.Context, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Panic(fmt.Sprintf("[%s]", logId) + " " + fmt.Sprint(v...))
-	} else {
-		Panic(v...)
+	if PanicLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		f := parseStr(ctx, v...)
+		loggerObj.OutputWf(f, PanicLevel)
+		panic(f)
 	}
 }
 
 func PanicfWithContext(ctx context.Context, format string, v ...interface{}) {
-	logId, ok := LogIdFromContext(ctx)
-	if ok {
-		Panicf(fmt.Sprintf("[%s] %s", logId, format), v...)
-	} else {
-		Panicf(format, v...)
+	if PanicLevel >= levelMapperRev[logLevel] && loggerObj != nil {
+		f := parseStrf(ctx, format, v...)
+		loggerObj.OutputWf(f, PanicLevel)
+		panic(f)
 	}
 }
 
@@ -265,4 +233,23 @@ func Panicf(format string, v ...interface{}) {
 
 func Close() {
 	loggerObj.Close()
+}
+
+func parseStr(ctx context.Context, v ...interface{}) string {
+	logId, ok := LogIdFromContext(ctx)
+	var format string
+	if ok {
+		format = fmt.Sprintf("[%s]", logId) + " " + fmt.Sprint(v...)
+	} else {
+		format = fmt.Sprint(v...)
+	}
+	return format
+}
+
+func parseStrf(ctx context.Context, format string, v ...interface{}) string {
+	logId, ok := LogIdFromContext(ctx)
+	if ok {
+		format = fmt.Sprintf("[%s] %s", logId, format)
+	}
+	return fmt.Sprintf(format, v...)
 }
